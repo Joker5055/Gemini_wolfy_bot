@@ -20,6 +20,7 @@ jobs:
           rm -rf android test
           flutter create --platforms=android --project-name wolfies_hit_bot --org com.wolfies .
           rm -rf lib && cp -r /tmp/lib_bak lib && cp /tmp/pubspec_bak.yaml pubspec.yaml
+          sed -i 's/Color(0FF/Color(0xFF/g' lib/*.dart
           M=android/app/src/main/AndroidManifest.xml
           sed -i 's|<application|<uses-permission android:name="android.permission.INTERNET"/>\n    <application|' $M
           sed -i 's|android:label="[^"]*"|android:label="Wolfies Hit Bot"|' $M
