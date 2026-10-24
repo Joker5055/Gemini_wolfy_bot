@@ -691,4 +691,43 @@ class _MainScreenState extends State<MainScreen> {
   void _manualTrade(String type) {
     double amt = double.tryParse(amountCtrl.text) ?? 10.0;
     double price = livePrices[selectedPair] ?? 100.0;
-    double slP
+        double slP = double.tryParse(slCtrl.text) ?? 2.0;
+    double tpP = double.tryParse(tpCtrl.text) ?? 4.0;
+    if (amt <= 0 || amt > demoBalance || openPositions.length >= 3) return;
+    double sl = type == "BUY" ? price * (1 - slP / 100) : price * (1 + slP / 100);
+    double tp = type == "BUY" ? price * (1 + tpP / 100) : price * (1 - tpP / 100);
+    setState(() {
+      demoBalance -= amt;
+      openPositions.add({'pair': selectedPair, 'type': type, 'entry': price, 'amount': amt, 'sl': sl, 'tp': tp});
+    });
+  }
+
+  void _closePosition(Map<String, dynamic> p) {
+    double price = livePrices[p['pair']] ?? (p['entry'] as double);
+    bool isLong = p['type'] == 'BUY';
+    double pnl = (isLong ? (price - p['entry']) : (p['entry'] - price)) / p['entry'] * p['amount'];
+    pnl -= p['amount'] * 0.002;
+    setState(() {
+      demoBalance += p['amount'] + pnl;
+      openPositions.remove(p);
+      tradeHistory.add({'pair': p['pair'], 'type': p['type'], 'pnl': pnl, 'reason': 'Manual Close'});
+    });
+  }
+
+  Widget _buildSeekhoTab() {
+    const lessons = {
+      'USDT kya hai?': 'Ek coin jiski value lagbhag 1 dollar rehti hai. BTCUSDT ka matlab BTC ki price USDT me.',
+      'BUY aur SELL': 'BUY: price badhne par profit. SELL (short): price girne par profit, ye futures me hota hai.',
+      'Stop-loss (SL)': 'Loss limit price. SL ke bina trade kabhi mat lo.',
+      'Target (TP)': 'Profit lene ki price. Ye app risk:reward 1:2 rakhta hai.',
+      '1% risk rule': 'Ek trade me capital ka max 1% khone ka risk lo.',
+      'Proven strategy': 'Wahi strategy gini jati hai jo fees ke baad train aur test dono me positive thi. Future ki guarantee nahi.',
+      'Kab trade nahi?': 'Jab app NO TRADE dikhaye, SL na laga ho, ya aap loss recover karne ki jaldbazi me ho.',
+      'Pehle kya karein?': 'Demo me 2-4 hafte chalayein. Positive result na aaye to real paise na lagayein.',
+    };
+    return ListView(children: [
+      for (final e in lessons.entries)
+        ExpansionTile(title: Text(e.key), children: [Padding(padding: const EdgeInsets.fromLTRB(16, 0, 16, 12), child: Text(e.value))]),
+    ]);
+  }
+}
