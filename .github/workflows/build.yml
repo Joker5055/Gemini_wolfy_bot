@@ -17,6 +17,7 @@ jobs:
       - name: Generate android scaffold
         run: |
           cp -r lib /tmp/lib_bak && cp pubspec.yaml /tmp/pubspec_bak.yaml
+          rm -rf android test
           flutter create --platforms=android --project-name wolfies_hit_bot --org com.wolfies .
           rm -rf lib && cp -r /tmp/lib_bak lib && cp /tmp/pubspec_bak.yaml pubspec.yaml
           M=android/app/src/main/AndroidManifest.xml
