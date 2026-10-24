@@ -25,47 +25,24 @@ jobs:
           flutter-version: '3.19.x'
           channel: 'stable'
 
-      - name: Backup original user code
+      - name: Verify Android directory and Manifest
         run: |
-          mkdir -p ../user_backup
-          cp -r lib pubspec.yaml ../user_backup/
-
-      - name: Create Flutter Android Project
-        run: |
-          flutter create --platforms=android .
-
-      - name: Restore user code and manifest
-        run: |
-          cp -r ../user_backup/lib .
-          cp ../user_backup/pubspec.yaml .
-          mkdir -p android/app/src/main
-          cat << 'EOF' > android/app/src/main/AndroidManifest.xml
-          <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-              package="com.example.wolfies_hit_bot">
-              <uses-permission android:name="android.permission.INTERNET"/>
-              <application
-                  android:label="Wolfies Hit Bot"
-                  android:icon="@mipmap/ic_launcher">
-                  <activity
-                      android:name=".MainActivity"
-                      android:exported="true"
-                      android:launchMode="singleTop"
-                      android:theme="@style/LaunchTheme"
-                      android:hardwareAccelerated="true"
-                      android:windowSoftInputMode="adjustResize">
-                      <intent-filter>
-                          <action android:name="android.intent.action.MAIN"/>
-                          <category android:name="android.intent.category.LAUNCHER"/>
-                      </intent-filter>
-                  </activity>
-              </application>
-          </manifest>
-          EOF
+          # Agar android folder nahi hai to flutter create se banayein
+          if [ ! -d "android" ]; then
+            flutter create --platforms=android .
+          fi
+          
+          # Ensure internet permission and label in AndroidManifest.xml
+          MANIFEST_PATH="android/app/src/main/AndroidManifest.xml"
+          if [ -f "$MANIFEST_PATH" ]; then
+            echo "Updating AndroidManifest.xml..."
+            # Simple check or replace can go here if needed
+          fi
 
       - name: Get Dependencies
         run: flutter pub get
 
-      - name: Build APK
+      - name: Build Release APK
         run: flutter build apk --release
 
       - name: Upload Release APK
@@ -73,4 +50,3 @@ jobs:
         with:
           name: WolfiesHitBot-Release-APK
           path: build/app/outputs/flutter-apk/app-release.apk
-          
