@@ -600,4 +600,29 @@ class Fetcher {
     } catch (_) {}
 
     try {
-      final res = await http.get(Uri.pa
+      final res = await http.get(Uri.parse(urlFallback)).timeout(const Duration(seconds: 5));
+      if (res.statusCode == 200) {
+        List data = jsonDecode(res.body);
+        return data.map((e) => Candle.fromJson(e)).toList();
+      }
+    } catch (_) {}
+    return [];
+  }
+
+  static Future<Map<String, double>> getPrices(List<String> pairs) async {
+    final out = <String, double>{};
+    final q = Uri.encodeComponent(jsonEncode(pairs.map((p) => "${p}USDT").toList()));
+    for (final host in ['https://data-api.binance.vision', 'https://api.binance.com']) {
+      try {
+        final res = await http.get(Uri.parse('$host/api/v3/ticker/price?symbols=$q')).timeout(const Duration(seconds: 5));
+        if (res.statusCode == 200) {
+          for (final e in jsonDecode(res.body) as List) {
+            out[(e['symbol'] as String).replaceAll('USDT', '')] = double.parse(e['price'].toString());
+          }
+          return out;
+        }
+      } catch (_) {}
+    }
+    return out;
+  }
+}
