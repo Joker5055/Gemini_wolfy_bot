@@ -472,228 +472,6 @@ class _MainScreenState extends State<MainScreen> {
     double slP = double.tryParse(slCtrl.text) ?? 2.0;
     double tpP = double.tryParse(tpCtrl.text) ?? 4.0;
     if (price <= 0 || amt <= 0 || amt > demoBalance || openPositions.length >= 3) return;
-                    onChanged: (v) {
-                    if (v != null) {
-                      setState(() => selectedTF = v);
-                      _loadData();
-                    }
-                  },
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          // Top Opportunity Card
-          Card(
-            color: const Color(0FF1E222D),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text("${topOpportunity?.pair ?? selectedPair} (${topOpportunity?.timeframe ?? selectedTF})", style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: topOpportunity?.direction == "BUY"
-                              ? Colors.green
-                              : topOpportunity?.direction == "SELL"
-                                  ? Colors.red
-                                  : Colors.grey,
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Text(topOpportunity?.direction ?? "NO TRADE", style: const TextStyle(fontWeight: FontWeight.bold)),
-                      )
-                    ],
-                  ),
-                  const Divider(color: Colors.white24, height: 20),
-                  Text("Reason: ${topOpportunity?.reason ?? 'Analyzing...'}", style: const TextStyle(color: Colors.grey)),
-                  const SizedBox(height: 10),
-                  if (topOpportunity?.direction != "NO TRADE") ...[
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text("Entry: \$${topOpportunity?.entry.toStringAsFixed(2)}"),
-                        Text("SL: \$${topOpportunity?.sl.toStringAsFixed(2)}", style: const TextStyle(color: Colors.redAccent)),
-                        Text("TP: \$${topOpportunity?.tp.toStringAsFixed(2)}", style: const TextStyle(color: Colors.greenAccent)),
-                      ],
-                    ),
-                  ]
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-          const Text("Live Chart (EMA 9 & 21)", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 8),
-          Container(
-            height: 180,
-            width: double.infinity,
-            color: const Color(0FF141721),
-            child: CustomPaint(
-              painter: CandlestickPainter(
-                candles: currentCandles,
-                ema9: currentIndicators?.ema9 ?? [],
-                ema21: currentIndicators?.ema21 ?? [],
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-          const Text("Strategy Backtest Metrics", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 8),
-          Table(
-            border: TableBorder.all(color: Colors.white10),
-            children: [
-              const TableRow(
-                decoration: BoxDecoration(color: Color(0FF1E222D)),
-                children: [
-                  Padding(padding: EdgeInsets.all(6), child: Text("Strategy", style: TextStyle(fontWeight: FontWeight.bold))),
-                  Padding(padding: EdgeInsets.all(6), child: Text("Signal", style: TextStyle(fontWeight: FontWeight.bold))),
-                  Padding(padding: EdgeInsets.all(6), child: Text("Win %", style: TextStyle(fontWeight: FontWeight.bold))),
-                  Padding(padding: EdgeInsets.all(6), child: Text("Proven", style: TextStyle(fontWeight: FontWeight.bold))),
-                ],
-              ),
-              ...currentStrategies.map((s) => TableRow(
-                    children: [
-                      Padding(padding: const EdgeInsets.all(6), child: Text(s.name, style: const TextStyle(fontSize: 12))),
-                      Padding(
-                        padding: const EdgeInsets.all(6),
-                        child: Text(
-                          s.signal == 1 ? "BUY" : s.signal == -1 ? "SELL" : "WAIT",
-                          style: TextStyle(color: s.signal == 1 ? Colors.green : s.signal == -1 ? Colors.red : Colors.grey, fontSize: 12),
-                        ),
-                      ),
-                      Padding(padding: const EdgeInsets.all(6), child: Text("${s.winRate.toStringAsFixed(0)}%", style: const TextStyle(fontSize: 12))),
-                      Padding(
-                        padding: const EdgeInsets.all(6),
-                        child: Icon(s.isProven ? Icons.check_circle : Icons.cancel, color: s.isProven ? Colors.green : Colors.red, size: 16),
-                      ),
-                    ],
-                  )),
-            ],
-          )
-        ],
-      ),
-    );
-  }
-
-  // --- TAB 2: CHARTS ---
-  Widget _buildChartsTab() {
-    return GridView.builder(
-      padding: const EdgeInsets.all(8),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2, childAspectRatio: 1.1, crossAxisSpacing: 8, mainAxisSpacing: 8),
-      itemCount: pairs.length,
-      itemBuilder: (context, index) {
-        String p = pairs[index];
-        double price = livePrices[p] ?? 0.0;
-        return Card(
-          color: const Color(0FF181C27),
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text("$p/USDT", style: const TextStyle(fontWeight: FontWeight.bold)),
-                const SizedBox(height: 4),
-                Text("\$${price.toStringAsFixed(2)}", style: const TextStyle(fontSize: 16, color: Colors.amber)),
-                const SizedBox(height: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(color: Colors.green.withOpacity(0.2), borderRadius: BorderRadius.circular(4)),
-                  child: const Text("LIVE MONITOR", style: TextStyle(color: Colors.green, fontSize: 10)),
-                )
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  // --- TAB 3: DEMO ---
-  Widget _buildDemoTab() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text("Balance: \$${demoBalance.toStringAsFixed(2)} USDT", style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.amber)),
-              ElevatedButton(
-                onPressed: () => setState(() {
-                  demoBalance = 1000.0;
-                  openPositions.clear();
-                  tradeHistory.clear();
-                }),
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
-                child: const Text("Reset Demo"),
-              )
-            ],
-          ),
-          const SizedBox(height: 12),
-          SwitchListTile(
-            title: const Text("Auto Demo Bot (1% Risk)"),
-            subtitle: const Text("Proven signals aane par automatic trade execute karega."),
-            value: autoBotActive,
-            onChanged: (v) => setState(() => autoBotActive = v),
-          ),
-          const SizedBox(height: 12),
-          TextField(controller: amountCtrl, decoration: const InputDecoration(labelText: "Trade Amount (USDT)", border: OutlineInputBorder())),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(child: TextField(controller: slCtrl, decoration: const InputDecoration(labelText: "SL %", border: OutlineInputBorder()))),
-              const SizedBox(width: 8),
-              Expanded(child: TextField(controller: tpCtrl, decoration: const InputDecoration(labelText: "TP %", border: OutlineInputBorder()))),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: () => _manualTrade("BUY"),
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-                  child: const Text("BUY / LONG"),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: () => _manualTrade("SELL"),
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                  child: const Text("SELL / SHORT"),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          const Text("Open Positions", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-          ...openPositions.map((p) => ListTile(
-                title: Text("${p['pair']} (${p['type']}) - Amount: \$${p['amount'].toStringAsFixed(1)}"),
-                subtitle: Text("Entry: \$${p['entry'].toStringAsFixed(2)}"),
-                trailing: IconButton(
-                  icon: const Icon(Icons.close, color: Colors.red),
-                  onPressed: () => _closePosition(p),
-                ),
-              )),
-        ],
-      ),
-    );
-  }
-
-  void _manualTrade(String type) {
-    double amt = double.tryParse(amountCtrl.text) ?? 10.0;
-    double price = livePrices[selectedPair] ?? 100.0;
-        double slP = double.tryParse(slCtrl.text) ?? 2.0;
-    double tpP = double.tryParse(tpCtrl.text) ?? 4.0;
-    if (amt <= 0 || amt > demoBalance || openPositions.length >= 3) return;
     double sl = type == "BUY" ? price * (1 - slP / 100) : price * (1 + slP / 100);
     double tp = type == "BUY" ? price * (1 + tpP / 100) : price * (1 - tpP / 100);
     setState(() {
@@ -710,19 +488,19 @@ class _MainScreenState extends State<MainScreen> {
     setState(() {
       demoBalance += p['amount'] + pnl;
       openPositions.remove(p);
-      tradeHistory.add({'pair': p['pair'], 'type': p['type'], 'pnl': pnl, 'reason': 'Manual Close'});
+      tradeHistory.insert(0, {'pair': p['pair'], 'type': p['type'], 'pnl': pnl, 'reason': 'Manual Close'});
     });
   }
 
   Widget _buildSeekhoTab() {
     const lessons = {
       'USDT kya hai?': 'Ek coin jiski value lagbhag 1 dollar rehti hai. BTCUSDT ka matlab BTC ki price USDT me.',
-      'BUY aur SELL': 'BUY: price badhne par profit. SELL (short): price girne par profit, ye futures me hota hai.',
+      'BUY aur SELL': 'BUY: price badhne par profit. SELL (short): price girne par profit, ye futures me hota hai. Spot me SELL ka matlab coin bechna.',
       'Stop-loss (SL)': 'Loss limit price. SL ke bina trade kabhi mat lo.',
       'Target (TP)': 'Profit lene ki price. Ye app risk:reward 1:2 rakhta hai.',
       '1% risk rule': 'Ek trade me capital ka max 1% khone ka risk lo.',
-      'Proven strategy': 'Wahi strategy gini jati hai jo fees ke baad train aur test dono me positive thi. Future ki guarantee nahi.',
-      'Kab trade nahi?': 'Jab app NO TRADE dikhaye, SL na laga ho, ya aap loss recover karne ki jaldbazi me ho.',
+      'Proven strategy': 'Wahi strategy gini jati hai jo purane data me fees ke baad train aur test dono hisson me positive thi. Future ki guarantee nahi.',
+      'Kab trade nahi?': 'Jab app NO TRADE dikhaye, SL na laga ho, ya aap loss recover karne ke liye jaldbazi kar rahe ho.',
       'Pehle kya karein?': 'Demo me 2-4 hafte chalayein. Positive result na aaye to real paise na lagayein.',
     };
     return ListView(children: [
