@@ -1,0 +1,76 @@
+name: Build Android Release APK
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.19.x'
+          channel: 'stable'
+
+      - name: Backup original user code
+        run: |
+          mkdir -p ../user_backup
+          cp -r lib pubspec.yaml ../user_backup/
+
+      - name: Create Flutter Android Project
+        run: |
+          flutter create --platforms=android .
+
+      - name: Restore user code and manifest
+        run: |
+          cp -r ../user_backup/lib .
+          cp ../user_backup/pubspec.yaml .
+          mkdir -p android/app/src/main
+          cat << 'EOF' > android/app/src/main/AndroidManifest.xml
+          <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+              package="com.example.wolfies_hit_bot">
+              <uses-permission android:name="android.permission.INTERNET"/>
+              <application
+                  android:label="Wolfies Hit Bot"
+                  android:icon="@mipmap/ic_launcher">
+                  <activity
+                      android:name=".MainActivity"
+                      android:exported="true"
+                      android:launchMode="singleTop"
+                      android:theme="@style/LaunchTheme"
+                      android:hardwareAccelerated="true"
+                      android:windowSoftInputMode="adjustResize">
+                      <intent-filter>
+                          <action android:name="android.intent.action.MAIN"/>
+                          <category android:name="android.intent.category.LAUNCHER"/>
+                      </intent-filter>
+                  </activity>
+              </application>
+          </manifest>
+          EOF
+
+      - name: Get Dependencies
+        run: flutter pub get
+
+      - name: Build APK
+        run: flutter build apk --release
+
+      - name: Upload Release APK
+        uses: actions/upload-artifact@v3
+        with:
+          name: WolfiesHitBot-Release-APK
+          path: build/app/outputs/flutter-apk/app-release.apk
+          
